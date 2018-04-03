@@ -6,6 +6,36 @@ import json
 import os
 import sqlite3
 
+import re
+import requests
+from bs4 import BeautifulSoup
+
+class crawler:
+    #定义基本属性
+    hr = "" #hashrate
+    man = "" # Manufacturer
+    name = ""
+
+    def __init__(self,name,hr,man,soup):
+        self.hr = hr
+        self.name = name
+        self.soup = soup
+        self.man = man # Manufacturer
+
+    def crawl(self):
+        croi = 999
+        for tr in self.soup.find_all('tr'):
+            try:
+                #print tr.find_all('td')[2].b.contents[1], tr.find_all('td')[3].a.contents[0]
+                if re.search( self.man, tr.find_all('td')[2].b.contents[1], re.I) and re.search( self.hr,tr.find_all('td')[3].a.contents[0],re.I):
+                    cprice = int(re.sub(r'\D', "", tr.find_all('td')[4].b.contents[0])) /100 * 6.4
+                    croi = re.search( r'\d+',tr.find_all('td')[6].b.contents[0], re.M|re.I).group()
+                    #print self.name,"price is ", cprice,"roi is", croi
+            except Exception , e:
+                continue
+        return cprice,int(croi) # crawl price and roi
+
+
 class miner:
     #定义基本属性
     hs=0
@@ -69,38 +99,44 @@ class miner:
     def bestprice(self):  
         print ""        
 
+
+
+### Crawl price and roi
+url = "https://www.asicminervalue.com/opportunities"
+response = requests.get(url)
+soup = BeautifulSoup(response.content, "html.parser")
+        
+crawl_14t = crawler("S9 14T","14T","bitmain",soup)
+crawl_13t = crawler("S9 13T","13T","bitmain",soup)
+crawl_16t = crawler("Halong 16T","T1","Halong",soup)
+crawl_t9 = crawler("T9 10.5T","t9","Bitmain",soup)
+crawl_v9 = crawler("v9","v9","Bitmain",soup)
+
+
+
+### Cauculate bestprice
 r = requests.get("https://api.huobipro.com/market/detail?symbol=btcusdt")
 #print r.content
 hjson = json.loads(r.content)
-price = hjson['tick']['close']
-cny = price *6.4
+btcprice = hjson['tick']['close']
+cny = btcprice *6.4
 
 difficulty =  requests.get("https://blockchain.info/q/getdifficulty").content
 network_hashrate_G =  int(requests.get("https://blockchain.info/q/hashrate").content)
 nhg=network_hashrate_G
 cost_ele_half_year = 13.44*7*26 #1400w
 
-##     hashrate power minerprice btcprice, nh, 
-t9 = miner("T9 10.5T",10.5,1432,5600,price,network_hashrate_G)
-
-s9_13 = miner("S9 13T",13,1280,9000,price,network_hashrate_G)
-
-s9_14 = miner("S9 14T",14,1372,10500,price,network_hashrate_G)
-
-t1 = miner("T1 16T",16,1480,17500,price,network_hashrate_G)
-
-v9 = miner("V9 4T",4,1027,1710,price,network_hashrate_G)
-
 
 print "\n量化分析参数，当前币价：",cny,"，当前难度", difficulty, " 全网算力：",nhg,"G，每次难度增长估算：7%，电费：0.5\n"
 
-
-
 btc_balance_of_bigboss =  int(requests.get("https://blockchain.info/q/addressbalance/3Cbq7aT1tY8kMxWLbitaG7yT6bPbKChq64").content)
+
 if btc_balance_of_bigboss < 9234706170247:
     print "Big boss sell", (9234706170247-btc_balance_of_bigboss)/100000000, "BTC"
 else:
     print "Big boss buy", (btc_balance_of_bigboss-9234706170247)/100000000, "BTC"
+
+
 
 ### Write into DB
 conn = sqlite3.connect('/home/ec2-user/btcminer.db')
@@ -117,33 +153,59 @@ now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 ##### Record s9 14t #####
 ID = ID +1
 #print "s9 ID is", ID
+cprice = 0
+croi = 0
+
+cprice,croi = crawl_14t.crawl()  # crawl price and roi
+print "crawl_14t get cprice,croi ", cprice,croi 
+
+s9_14 = miner("S9 14T",14,1372,cprice,btcprice,network_hashrate_G)
 price,roi = s9_14.roi()
-qstr="INSERT INTO minerprice (ID,NAME,bestprice,date,roi) VALUES (%s,'s9_14',%s,'%s',%s)" % (ID,price,now,roi)
-print qstr
+
+qstr="INSERT INTO minerprice (ID,NAME,bestprice,cprice,date,roi) VALUES (%s,'s9_14',%s,%s,'%s',%s)" % (ID,price,int(cprice),now,int(croi))
 c.execute(qstr);
 
 ##### Record s9 13t #####
 ID = ID +1
+cprice,croi = crawl_13t.crawl()  # crawl price and roi
+print "crawl_13t get cprice,croi ", cprice,croi 
+
+s9_13 = miner("S9 13T",13,1280,cprice,btcprice,network_hashrate_G)
 price,roi = s9_13.roi()
-qstr="INSERT INTO minerprice (ID,NAME,bestprice,date,roi) VALUES (%s,'s9_13',%s,'%s',%s)" % (ID,price,now,roi)
+qstr="INSERT INTO minerprice (ID,NAME,bestprice,cprice,date,roi) VALUES (%s,'s9_13',%s,%s,'%s',%s)" % (ID,price,int(cprice),now,int(croi))
 c.execute(qstr);
 
 ##### Record t9 10.5t #####
 ID = ID +1
+cprice,croi = crawl_t9.crawl()  # crawl price and roi
+print "crawl_t9 get cprice,croi ", cprice,croi 
+
+##     hashrate power minerprice btcprice, nh, 
+t9 = miner("T9 10.5T",10.5,1432,cprice,btcprice,network_hashrate_G)
 price,roi = t9.roi()
-qstr="INSERT INTO minerprice (ID,NAME,bestprice,date,roi) VALUES (%s,'t9',%s,'%s',%s)" % (ID,price,now,roi)
+
+qstr="INSERT INTO minerprice (ID,NAME,bestprice,cprice,date,roi) VALUES (%s,'t9',%s,%s,'%s',%s)" % (ID,price,int(cprice),now,int(croi))
 c.execute(qstr);
 
 ##### Record v9 4t #####
 ID = ID +1
+cprice,croi = crawl_v9.crawl()  # crawl price and roi
+print "crawl_v9 get cprice,croi ", cprice,croi 
+
+v9 = miner("V9 4T",4,1027,cprice,btcprice,network_hashrate_G)
 price,roi = v9.roi()
-qstr="INSERT INTO minerprice (ID,NAME,bestprice,date,roi) VALUES (%s,'v9',%s,'%s',%s)" % (ID,price,now,roi)
+qstr="INSERT INTO minerprice (ID,NAME,bestprice,cprice,date,roi) VALUES (%s,'v9',%s,%s,'%s',%s)" % (ID,price,int(cprice),now,int(croi))
 c.execute(qstr);
 
 ##### Record Halong 16t #####
 ID = ID +1
+cprice,croi = crawl_16t.crawl()  # crawl price and roi
+print "crawl_16t get cprice,croi ", cprice,croi 
+
+t1 = miner("T1 16T",16,1480,cprice,btcprice,network_hashrate_G)
 price,roi = t1.roi()
-qstr="INSERT INTO minerprice (ID,NAME,bestprice,date,roi) VALUES (%s,'halong',%s,'%s',%s)" % (ID,price,now,roi)
+
+qstr="INSERT INTO minerprice (ID,NAME,bestprice,cprice,date,roi) VALUES (%s,'halong',%s,%s,'%s',%s)" % (ID,price,int(cprice),now,int(croi))
 c.execute(qstr);
 
 
