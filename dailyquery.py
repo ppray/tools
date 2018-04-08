@@ -45,13 +45,14 @@ class miner:
     nhr = 0
     ele = 0 #Electricity
 
-    def __init__(self,name,hs,pw,pr,bpr,nhr):
+    def __init__(self,name,hs,pw,pr,bpr,nhr,interval):
         self.hs = hs
         self.name = name
         self.power = pw
         self.price = pr # miner price
         self.btcprice = bpr # btc price
         self.nhr = nhr # unit G
+        self.interval = float(interval) # average time between blocks in seconds 
 
     def roi(self):
         i=1
@@ -59,12 +60,16 @@ class miner:
         total = 0
         cny = self.btcprice *6.4 #btc price CNY
         bestprice = self.price
-        btc_daily = 1800.0 * (self.hs * 1000) / self.nhr
+        btc_daily = 1800.0*600/self.interval * (self.hs * 1000) / self.nhr
+        if btc_daily*cny > self.power/1000*24*0.5:
+            huangli = "宜开机"
+        else :
+            huangli = "宜关机"
         
         print "\n",self.name,"当前售价",self.price
         while (i <= 27):
-            btc_2weeks_income_per_100T = 1800.0 * 14 * 100000 / self.nhr
-            btc_daily_income_per_100T = 1800.0 * 100000 / self.nhr
+            btc_2weeks_income_per_100T = 1800.0*600/self.interval * 14 * 100000 / self.nhr
+            btc_daily_income_per_100T = 1800.0*600/self.interval * 100000 / self.nhr
             total = total + btc_2weeks_income_per_100T
             if (total/100*self.hs*cny >= self.price+self.power/1000*24*0.5*14*i):
                 roi = i*14 - ((total/100*13*cny) - self.price)/(btc_daily_income_per_100T*cny)
@@ -94,7 +99,9 @@ class miner:
             print "回本周期: 无法回本"
         else:
             print "回本周期: ", roi,"天"
-        return bestprice,roi,btc_daily,btc_month,total_btc_one_year
+        if bestprice == self.price:
+            huangli = huangli + " 宜购机"
+        return bestprice,roi,btc_daily,btc_month,total_btc_one_year,huangli
 
     def speak(self):  
         print("%s is speaking: I am %d years old" %(self.hs,self.price))
@@ -110,7 +117,7 @@ response = requests.get(url)
 soup = BeautifulSoup(response.content, "html.parser")
         
 crawl_14t = crawler("S9 14T","14T","bitmain",soup)
-crawl_13t = crawler("S9 13T","13T","bitmain",soup)
+crawl_13t = crawler("S9 13T","13.5T","bitmain",soup)
 crawl_16t = crawler("Halong 16T","T1","Halong",soup)
 crawl_t9 = crawler("T9 10.5T","t9","Bitmain",soup)
 crawl_v9 = crawler("v9","v9","Bitmain",soup)
@@ -126,8 +133,14 @@ btcprice = hjson['tick']['close']
 cny = btcprice *6.4
 
 difficulty =  requests.get("https://blockchain.info/q/getdifficulty").content
-network_hashrate_G =  int(requests.get("https://blockchain.info/q/hashrate").content)
+interval =  requests.get("https://blockchain.info/q/interval").content   #average time between blocks in seconds 
+#network_hashrate_G =  int(requests.get("https://blockchain.info/q/hashrate").content)
+r2 = requests.get("https://chain.so/api/v2/get_info/btc")
+
+hr_json = json.loads(r2.content)
+network_hashrate_G = float(hr_json['data']['hashrate'])/1000000000
 nhg=network_hashrate_G
+
 cost_ele_half_year = 13.44*7*26 #1400w
 
 
@@ -163,10 +176,10 @@ croi = 0
 cprice,croi = crawl_14t.crawl()  # crawl price and roi
 print "crawl_14t get cprice,croi ", cprice,croi 
 
-s9_14 = miner("S9 14T",14,1372,cprice,btcprice,network_hashrate_G)
-price,roi,btc_day,btc_month,btc_year = s9_14.roi()
+s9_14 = miner("S9 14T",14,1372,cprice,btcprice,network_hashrate_G,interval)
+price,roi,btc_day,btc_month,btc_year,huangli = s9_14.roi()
 
-qstr="INSERT INTO minerprice (ID,NAME,bestprice,cprice,date,roi,day,month,year) VALUES (%s,'s9_14',%s,%s,'%s',%s,%s,%s,%s)" % (ID,price,int(cprice),now,int(croi),btc_day,btc_month,btc_year)
+qstr="INSERT INTO minerprice (ID,NAME,bestprice,cprice,date,roi,day,month,year,huangli) VALUES (%s,'s9_14',%s,%s,'%s',%s,%s,%s,%s,'%s')" % (ID,price,int(cprice),now,int(croi),btc_day,btc_month,btc_year,huangli)
 c.execute(qstr);
 
 ##### Record s9 13t #####
@@ -174,9 +187,9 @@ ID = ID +1
 cprice,croi = crawl_13t.crawl()  # crawl price and roi
 print "crawl_13t get cprice,croi ", cprice,croi 
 
-s9_13 = miner("S9 13T",13,1280,cprice,btcprice,network_hashrate_G)
-price,roi,btc_day,btc_month,btc_year = s9_13.roi()
-qstr="INSERT INTO minerprice (ID,NAME,bestprice,cprice,date,roi,day,month,year) VALUES (%s,'s9_13',%s,%s,'%s',%s,%s,%s,%s)" % (ID,price,int(cprice),now,int(croi),btc_day,btc_month,btc_year)
+s9_13 = miner("S9 13T",13,1280,cprice,btcprice,network_hashrate_G,interval)
+price,roi,btc_day,btc_month,btc_year,huangli = s9_13.roi()
+qstr="INSERT INTO minerprice (ID,NAME,bestprice,cprice,date,roi,day,month,year,huangli) VALUES (%s,'s9_13',%s,%s,'%s',%s,%s,%s,%s,'%s')" % (ID,price,int(cprice),now,int(croi),btc_day,btc_month,btc_year,huangli)
 c.execute(qstr);
 
 ##### Record t9 10.5t #####
@@ -185,10 +198,10 @@ cprice,croi = crawl_t9.crawl()  # crawl price and roi
 print "crawl_t9 get cprice,croi ", cprice,croi 
 
 ##     hashrate power minerprice btcprice, nh, 
-t9 = miner("T9 10.5T",10.5,1432,cprice,btcprice,network_hashrate_G)
-price,roi,btc_day,btc_month,btc_year = t9.roi()
+t9 = miner("T9 10.5T",10.5,1432,cprice,btcprice,network_hashrate_G,interval)
+price,roi,btc_day,btc_month,btc_year,huangli = t9.roi()
 
-qstr="INSERT INTO minerprice (ID,NAME,bestprice,cprice,date,roi,day,month,year) VALUES (%s,'t9',%s,%s,'%s',%s,%s,%s,%s)" % (ID,price,int(cprice),now,int(croi),btc_day,btc_month,btc_year)
+qstr="INSERT INTO minerprice (ID,NAME,bestprice,cprice,date,roi,day,month,year,huangli) VALUES (%s,'t9',%s,%s,'%s',%s,%s,%s,%s,'%s')" % (ID,price,int(cprice),now,int(croi),btc_day,btc_month,btc_year,huangli)
 c.execute(qstr);
 
 ##### Record v9 4t #####
@@ -196,9 +209,9 @@ ID = ID +1
 cprice,croi = crawl_v9.crawl()  # crawl price and roi
 print "crawl_v9 get cprice,croi ", cprice,croi 
 
-v9 = miner("V9 4T",4,1027,cprice,btcprice,network_hashrate_G)
-price,roi,btc_day,btc_month,btc_year = v9.roi()
-qstr="INSERT INTO minerprice (ID,NAME,bestprice,cprice,date,roi,day,month,year) VALUES (%s,'v9',%s,%s,'%s',%s,%s,%s,%s)" % (ID,price,int(cprice),now,int(croi),btc_day,btc_month,btc_year)
+v9 = miner("V9 4T",4,1027,cprice,btcprice,network_hashrate_G,interval)
+price,roi,btc_day,btc_month,btc_year,huangli = v9.roi()
+qstr="INSERT INTO minerprice (ID,NAME,bestprice,cprice,date,roi,day,month,year,huangli) VALUES (%s,'v9',%s,%s,'%s',%s,%s,%s,%s,'%s')" % (ID,price,int(cprice),now,int(croi),btc_day,btc_month,btc_year,huangli)
 c.execute(qstr);
 
 ##### Record Halong 16t #####
@@ -206,10 +219,10 @@ ID = ID +1
 cprice,croi = crawl_16t.crawl()  # crawl price and roi
 print "crawl_16t get cprice,croi ", cprice,croi 
 
-t1 = miner("T1 16T",16,1480,cprice,btcprice,network_hashrate_G)
-price,roi,btc_day,btc_month,btc_year = t1.roi()
+t1 = miner("T1 16T",16,1480,cprice,btcprice,network_hashrate_G,interval)
+price,roi,btc_day,btc_month,btc_year,huangli = t1.roi()
 
-qstr="INSERT INTO minerprice (ID,NAME,bestprice,cprice,date,roi,day,month,year) VALUES (%s,'halong',%s,%s,'%s',%s,%s,%s,%s)" % (ID,price,int(cprice),now,int(croi),btc_day,btc_month,btc_year)
+qstr="INSERT INTO minerprice (ID,NAME,bestprice,cprice,date,roi,day,month,year,huangli) VALUES (%s,'halong',%s,%s,'%s',%s,%s,%s,%s,'%s')" % (ID,price,int(cprice),now,int(croi),btc_day,btc_month,btc_year,huangli)
 c.execute(qstr);
 
 
