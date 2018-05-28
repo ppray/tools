@@ -4,17 +4,7 @@
 import requests
 import json
 import os
-
-r = requests.get("https://api.huobipro.com/market/detail?symbol=btcusdt")
-#print r.content
-hjson = json.loads(r.content)
-price = hjson['tick']['close']
-cny = price *6.4
-
-difficulty =  requests.get("https://blockchain.info/q/getdifficulty").content
-network_hashrate_G =  int(requests.get("https://blockchain.info/q/hashrate").content)
-nhg=network_hashrate_G
-cost_ele_half_year = 13.44*7*26 #1400w
+import sqlite3
 
 class miner:
     #定义基本属性
@@ -48,7 +38,6 @@ class miner:
             if (total/100*self.hs*cny >= self.price+self.power/1000*24*0.5*14*i):
                 roi = i*14 - ((total/100*13*cny) - self.price)/(btc_daily_income_per_100T*cny)
                 break
-            #print i, "th 2weeks total is", total/100*self.hs, total/100*self.hs*cny , "network_hashrate_G is", network_hashrate_G,"cost is", self.price+self.power/1000*24*0.5*14*i
             if i == 13:
                 total_btc_half_year = total/100*self.hs
                 total_cny_half_year = total_btc_half_year*cny
@@ -71,7 +60,7 @@ class miner:
             print "回本周期: 无法回本"
         else:
             print "回本周期: ", roi,"天"
-        return roi
+        return bestprice,roi
 
     def speak(self):  
         print("%s is speaking: I am %d years old" %(self.hs,self.price))
@@ -79,27 +68,57 @@ class miner:
     def bestprice(self):  
         print ""        
 
+r = requests.get("https://api.huobipro.com/market/detail?symbol=btcusdt")
+#print r.content
+hjson = json.loads(r.content)
+price = hjson['tick']['close']
+cny = price *6.4
+
+difficulty =  requests.get("https://blockchain.info/q/getdifficulty").content
+network_hashrate_G =  int(requests.get("https://blockchain.info/q/hashrate").content)
+network_hashrate_p =  round(network_hashrate_G/1000000000.0,2)
+cost_ele_half_year = 13.44*7*26 #1400w
+
 ##     hashrate power minerprice btcprice, nh, 
 t9 = miner("T9 10.5T",10.5,1432,5600,price,network_hashrate_G)
-t9.roi()
 
 s9_13 = miner("S9 13T",13,1280,9000,price,network_hashrate_G)
-s9_13.roi()
 
 s9_14 = miner("S9 14T",14,1372,10500,price,network_hashrate_G)
-s9_14.roi()
 
 t1 = miner("T1 16T",16,1480,17500,price,network_hashrate_G)
-t1.roi()
+
+v9 = miner("V9 4T",4,1027,1710,price,network_hashrate_G)
 
 
-print "\n量化分析参数，当前币价：",cny,"，当前难度", difficulty, " 全网算力：",nhg,"G，每次难度增长估算：7%，电费：0.5\n"
+print "\n量化分析参数，当前币价：",cny,"，当前难度", difficulty, " 全网算力：",network_hashrate_p,"P，每次难度增长估算：7%，电费：0.5\n"
 
 
 
 btc_balance_of_bigboss =  int(requests.get("https://blockchain.info/q/addressbalance/3Cbq7aT1tY8kMxWLbitaG7yT6bPbKChq64").content)
-if btc_balance_of_bigboss < 9234706170247:
-    print "Big boss sell", (9234706170247-btc_balance_of_bigboss)/100000000, "BTC"
+if btc_balance_of_bigboss < 10105598648665:
+    print "Big boss sell", (10105598648665-btc_balance_of_bigboss)/100000000, "BTC"
 else:
-    print "Big boss buy", (btc_balance_of_bigboss-9234706170247)/100000000, "BTC"
+    print "Big boss buy", (btc_balance_of_bigboss-10105598648665)/100000000, "BTC"
 
+### Write into DB
+conn = sqlite3.connect('/home/ec2-user/btcminer.db')
+c = conn.cursor()
+cursor =c.execute("select * from btcstats order by ID desc limit 1")
+for row in cursor:
+    ID=row[0]
+
+#print "current ID is", ID
+
+import datetime
+now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+ID = ID +1
+
+qstr = "INSERT INTO btcstats (ID,date,price,hashrate) VALUES (%s,'%s',%s,%s)" % (ID,now,price,network_hashrate_G)
+print "qstr is ", qstr
+c.execute(qstr);
+
+conn.commit()
+print "Records created successfully";
+conn.close()
