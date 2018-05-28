@@ -26,7 +26,7 @@ def html_stats(name,number,delta,tag):
         </h3>
         <span class="bpi">%s</span>
     ''' % (class1,number,class2,delta,name)
-    print html
+    #print html
     return html
 
 def html_table(usd,name,p1,p2,p3,p4,p5):
