@@ -120,11 +120,10 @@ response = requests.get(url)
 soup = BeautifulSoup(response.content, "html.parser")
         
 crawl_14t = crawler("S9 14T","14T","bitmain",soup)
-#crawl_13t = crawler("S9 13T","13T","bitmain",soup)
 crawl_13t = crawler("S9 13T","13.5T","bitmain",soup)
 crawl_16t = crawler("Halong 16T","T1","Halong",soup)
 crawl_t9 = crawler("T9 10.5T","t9","",soup)
-crawl_v9 = crawler("v9","v9","Bitmain",soup)
+crawl_gmob2 = crawler("v9","v9","Bitmain",soup)
 
 
 
@@ -210,8 +209,8 @@ c.execute(qstr);
 
 ##### Record v9 4t #####
 ID = ID +1
-cprice,croi = crawl_v9.crawl()  # crawl price and roi
-print "crawl_v9 get cprice,croi ", cprice,croi 
+cprice,croi = crawl_gmob2.crawl()  # crawl price and roi
+print "crawl_gmob2 get cprice,croi ", cprice,croi 
 
 v9 = miner("V9 4T",4,1027,cprice,btcprice,network_hashrate_G,interval)
 price,roi,btc_day,btc_month,btc_year,huangli = v9.roi()
