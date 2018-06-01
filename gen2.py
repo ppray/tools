@@ -29,184 +29,128 @@ def html_stats(name,number,delta,tag):
     #print html
     return html
 
-def html_table(usd,name,p1,p2,p3,p4,p5):
-    p1 = str(round(p1,6))+" BTC ($"+str(round(p1*float(usd),2))+")"
-    p2 = str(round(p2,6))+" BTC ($"+str(round(p2*float(usd),2))+")"
-    p3 = str(round(p3,6))+" BTC ($"+str(round(p3*float(usd),2))+")"
-    p4 = str(round(p4,6))+" BTC ($"+str(round(p4*float(usd),2))+")"
-    p5 = str(round(p5,6))+" BTC ($"+str(round(p5*float(usd),2))+")"
+## Gengerate string like "0.000931 BTC ($6.95)"
+def profit_string(usd,profit):
+    return str(round(profit,6))+" BTC ($"+str(round(profit*float(usd),2))+")"
+
+## Generate profit table
+def html_table(usd,table_name,device_list,device_name,profit_list):
     html = '''
           <h6 class="aya">
             %s
-          </h6>
-            <a class="pu rs xj ux" href="#">
-              <span>Halong 16T</span>
-              <span class="awy">%s</span>
-            </a>
+          </h6>''' % (table_name)
+    a = {} 
+    for miner in device_list:
+        a[miner] = '''
+               <a class="pu rs xj ux" href="#">
+                 <span>%s</span>
+                 <span class="awy">%s</span>
+               </a> ''' % (device_name[miner],profit_string(usd,profit_list[miner]))
+        html = html+a[miner]
 
-            <a class="pu rs xj ux" href="#">
-              <span>AntMiner S9 14T</span>
-              <span class="awy">%s</span>
-            </a>
-
-            <a class="pu rs xj ux" href="#">
-              <span>AntMiner S9 13.5T</span>
-              <span class="awy">%s</span>
-            </a>
-
-            <a class="pu rs xj ux" href="#">
-              <span>AntMiner T9 10.5T</span>
-              <span class="awy">%s</span>
-            </a>
-
-            <a class="pu rs xj ux" href="#">
-              <span>AntMiner v9 4T</span>
-              <span class="awy">%s</span>
-            </a> ''' % (name,p1,p2,p3,p4,p5)
     #print html
     return html
 
-### Write into DB
+### Read data from DB
 conn = sqlite3.connect('/home/ec2-user/btcminer.db')
 c = conn.cursor()
-cursor2 =c.execute("select * from btcstats order by ID desc limit 2")
+##### Get market price, network hashrate and difficulty
+stats_cursor =c.execute("select * from btcstats order by ID desc limit 2")
 btcprice = []
 ngh = []
 
-for row in cursor2:
+for row in stats_cursor:
     btcprice.append(int(row[2]))
     ngh.append(round(row[3]/1000000000.0,2))
 
-cursor =c.execute("select * from minerprice order by ID desc limit 50")
+##### Get ROI and price.
+miner_cursor =c.execute("select * from minerprice order by ID desc limit 50")
 
-halong_numb = ""
-v9_numb = ""
-t9_numb = ""
-s9_13_numb = ""
-s9_14_numb = ""
+device_list = ["halong",'s9_14',"s9_13","t9","v9"]
+device_name = {}
+device_name["halong"] = "Halong T1 16T"
+device_name["v9"] = "AntMiner v9 4T"
+device_name["t9"] = "AntMiner T9 10.5T"
+device_name["s9_13"] = "AntMiner S9 13.5T"
+device_name["s9_14"] = "AntMiner S9 14T"
+print "device_list is ", device_list
 datetime = ""
-
-v9_cprice = []
-t9_cprice = []
-s9_13_cprice = []
-s9_14_cprice = []
-halong_cprice = []
-
-v9_income = ""
-t9_income = "" 
-s9_13_income = "" 
-s9_14_income = "" 
-halong_income = ""
-
-
-v9_income_day = 0
-t9_income_day = 0 
-s9_13_income_day = 0
-s9_14_income_day = 0 
-halong_income_day = 0
-
-v9_income_month = 0
-t9_income_month = 0 
-s9_13_income_month = 0
-s9_14_income_month = 0 
-halong_income_month = 0
-
-v9_income_year = 0
-t9_income_year = 0 
-s9_13_income_year = 0
-s9_14_income_year = 0 
-halong_income_year = 0
-
 roi = {}
 
+## Initial string for best price
+bestprice = {}
+## Initial string for year_income_usd
+year_income_usd = {}
+## Initial number for day_income
+day_income = {}
+## Initial number for month_income
+month_income = {}
+## Initial number for year_income
+year_income = {}
+## Initial number for cprice
+cprice = {}
+## Initial string for roi_dataset
+roi_dataset = ""
+roi_dataset_y = ""
+for i in device_list:
+    roi_dataset_y = "'"+device_name[i]+"', "+roi_dataset_y
+## Initial string for cprice_list
+cprice_list = ""
+bar_bestprice = ""
 
-    
-for row in cursor:
+for miner in device_list:
+    bestprice[miner] = ""
+    year_income_usd[miner] = ""
+    day_income[miner] = 0
+    month_income[miner] = 0
+    year_income[miner] = 0
+    cprice[miner] = []
+
+for row in miner_cursor:
     ID=row[0]
-    if row[1] == "halong":
-        halong_numb = str(int(row[2]/6.4))+", "+halong_numb
-        halong_income = str(round(float(row[10])*float(btc_price_usdt),2))+", "+halong_income #Year
-        if halong_income_day == 0:
-            halong_income_day = row[8]
-            halong_income_month = row[9]
-            halong_income_year = row[10]
-        halong_cprice.append(row[3])
-        datetime = "'"+str(row[6])+"', "+datetime
-        if not  roi.has_key("halong"):
-            roi["halong"] = str(row[7])
-            print "halong roi is ", roi["halong"]
-    if row[1] == "v9":
-        if row[2] < 0:
-            v9_numb = "1, "+v9_numb
-        else:
-            v9_numb = str(int(row[2]/6.4))+", "+v9_numb
-        v9_income = str(round(row[10]*float(btc_price_usdt),2))+", "+v9_income
-        if v9_income_day == 0:
-            v9_income_day = row[8]
-            v9_income_month = row[9]
-            v9_income_year = row[10]
-        v9_cprice.append(row[3])
-        if not  roi.has_key("v9"):
-            roi["v9"] = str(row[7])
-    if row[1] == "t9":
-        t9_numb = str(int(row[2]/6.4))+", "+t9_numb
-        t9_income = str(round(row[10]*float(btc_price_usdt),2))+", "+t9_income
-        if t9_income_day == 0:
-            t9_income_day = row[8]
-            t9_income_month = row[9]
-            t9_income_year = row[10]
-        t9_cprice.append(row[3])
-        if not  roi.has_key("t9"):
-            roi["t9"] = str(row[7])
-    if row[1] == "s9_13":
-        s9_13_numb = str(int(row[2]/6.4))+", "+s9_13_numb
-        s9_13_income = str(round(row[10]*float(btc_price_usdt),2))+", "+s9_13_income
-        if s9_13_income_day == 0:
-            s9_13_income_day = row[8]
-            s9_13_income_month = row[9]
-            s9_13_income_year = row[10]
-        s9_13_cprice.append(row[3])
-        if not  roi.has_key("s9_13"):
-            roi["s9_13"] = str(row[7])
-    if row[1] == "s9_14":
-        s9_14_numb = str(int(row[2]/6.4))+", "+s9_14_numb
-        s9_14_income = str(round(row[10]*float(btc_price_usdt),2))+", "+s9_14_income
-        if s9_14_income_day == 0:
-            s9_14_income_day = row[8]
-            s9_14_income_month = row[9]
-            s9_14_income_year = row[10]
-        s9_14_cprice.append(row[3])
-        if not  roi.has_key("s9_14"):
-            roi["s9_14"] = str(row[7])
+    for miner in device_list:
+        if miner == row[1]:
+            bestprice[miner] = str(int(row[2]/6.4))+", "+bestprice[miner]
+            year_income_usd[miner] = str(round(float(row[10])*float(btc_price_usdt),2))+", "+year_income_usd[miner] #Year
+             
+            if day_income[miner] == 0:
+                day_income[miner] = row[8]
+                month_income[miner] = row[9]
+                year_income[miner] = row[10]
+            if not re.search(str(row[6]),datetime):
+                datetime = "'"+str(row[6])+"', "+datetime
+            cprice[miner].append(row[3])
+            if not  roi.has_key(miner):
+                roi[miner] = str(row[7])
+                #print miner, "roi is ", roi[miner]
 
-
-print "halong best price is", halong_numb
-print "v9 best price is", v9_numb
-print "t9 best price is", t9_numb
-print "s9 13T best price is", s9_13_numb
-print "s9 14T best price is", s9_14_numb
-print "HTML was generated in /var/www/html/index.html"
-
-print "halong daily income is", halong_income
-roi_html = roi["halong"]+", "+roi["s9_14"]+", "+roi["s9_13"]+", "+roi["t9"]+", "+roi["v9"]
-
-### Creat Bar
-bar_bestprice = re.sub(r',',"",halong_numb).split( )[-1]
-bar_bestprice = bar_bestprice+", "+re.sub(r',',"",s9_14_numb).split( )[-1]
-bar_bestprice = bar_bestprice+", "+re.sub(r',',"",s9_13_numb).split( )[-1]
-bar_bestprice = bar_bestprice+", "+re.sub(r',',"",t9_numb).split( )[-1]
-bar_bestprice = bar_bestprice+", "+re.sub(r',',"",v9_numb).split( )[-1]
-
-cprice_list = str(halong_cprice[0])+", "+str(s9_14_cprice[0])+", "+str(s9_13_cprice[0])+", "+str(t9_cprice[0])+", "+str(v9_cprice[0])
-
+## check data for graphic 
+for miner in device_list:
+    print miner, " best price is", bestprice[miner]
+    print miner, " year income is", year_income_usd[miner], "\n"
+    roi_dataset = roi[miner]+", "+roi_dataset
+    print miner, " roi is ", roi[miner]
+    ### Creat Bar
+    if bar_bestprice == "":
+        bar_bestprice = re.sub(r',',"",bestprice[miner]).split( )[-1]
+    else:
+        bar_bestprice = bar_bestprice+", "+re.sub(r',',"",bestprice[miner]).split( )[-1]
+    if cprice_list == "":
+        cprice_list = str(cprice[miner][0])
+    else:
+        cprice_list = cprice_list+", "+str(cprice[miner][0])
+print "roi_dataset is " , roi_dataset
+print "roi_dataset_y is ", roi_dataset_y
 print "bar_bestprice is ", bar_bestprice
 print "cprice_list is ", cprice_list
 
+
+
 ### Creat table
 
-day_income = html_table(btc_price_usdt,"Profit /day",halong_income_day,s9_14_income_day,s9_13_income_day,t9_income_day,v9_income_day)
-month_income = html_table(btc_price_usdt,"Profit /month",halong_income_month,s9_14_income_month,s9_13_income_month,t9_income_month,v9_income_month)
-year_income = html_table(btc_price_usdt,"Profit /year",halong_income_year,s9_14_income_year,s9_13_income_year,t9_income_year,v9_income_year)
+day_income_table = html_table(btc_price_usdt,"Profit /day",device_list,device_name,day_income)
+month_income_table = html_table(btc_price_usdt,"Profit /month",device_list,device_name,month_income)
+year_income_table = html_table(btc_price_usdt,"Profit /year",device_list,device_name,year_income)
 
 tag = 0
 if btcprice[0] > btcprice[1]:
@@ -234,11 +178,12 @@ difficulty =  requests.get("https://blockchain.info/q/getdifficulty").content
 ### Wirte html
 f_path = r'/var/www/html/temp2.html'
 f = open (f_path, "r+")
-html = re.sub(r'{t9}', t9_income, f.read())
-html = re.sub(r'{v9}', v9_income, html)
-html = re.sub(r'{13t}', s9_13_income, html)
-html = re.sub(r'{14t}', s9_14_income, html)
-html = re.sub(r'{16t}', halong_income, html)
+html = re.sub(r'{t9}', year_income_usd["t9"], f.read())
+html = re.sub(r'{v9}', year_income_usd["v9"], html)
+html = re.sub(r'{13t}', year_income_usd["s9_13"], html)
+html = re.sub(r'{14t}', year_income_usd["s9_14"], html)
+html = re.sub(r'{16t}', year_income_usd["halong"], html)
+
 html = re.sub(r'{datetime}', datetime, html)
 
 html = re.sub(r'{market_price}', price_stats, html)
@@ -248,12 +193,14 @@ html = re.sub(r'{bestprice}', bar_bestprice, html)
 html = re.sub(r'{marketprice}', cprice_list, html)
 html = re.sub(r'{diffi}', difficulty, html)
 
-html = re.sub(r'{roi}', roi_html, html)
+html = re.sub(r'{roi}', roi_dataset, html)
+html = re.sub(r'{roi_y}', roi_dataset_y, html)
 
-html = re.sub(r'{day_income}', day_income, html)
-html = re.sub(r'{month_income}', month_income, html)
-html = re.sub(r'{year_income}', year_income, html)
+html = re.sub(r'{day_income}', day_income_table, html)
+html = re.sub(r'{month_income}', month_income_table, html)
+html = re.sub(r'{year_income}', year_income_table, html)
 
 open('/var/www/html/index.html', 'w').write(html)
+print "HTML was generated in /var/www/html/index.html"
 
 conn.close()
