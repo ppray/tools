@@ -1,0 +1,5 @@
+s9_14,AntMiner s9 14T,14,1372,bitmain,s9
+s9_13,AntMiner s9 13.5T,13.5,1372,s9,13.5
+halong, Halong T1 16T,16,1480,Halong,t1
+t9,AntMiner t9 10.5T,10.5,1432,bitmain,t9
+v9,AntMiner v9 4T,4,1027,v9,4
