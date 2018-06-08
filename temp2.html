@@ -1,1 +1,278 @@
-/var/www/html/temp2.html
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <meta name="keywords" content="asic,miner,value,profitability,profits,estimation,mining,hardware,rentability,roi,compare,revenue,live,stats,fees,difficulty,mine,coin">
+
+    <title>
+      
+      5 Top BTC Miner | mining hardware profitability | BTC ASIC Miner Value
+
+    </title>
+
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,400italic" rel="stylesheet">
+    
+      <link href="toolkit-inverse.css" rel="stylesheet">
+    
+    
+      <link href="application.css" rel="stylesheet">
+
+    <style>
+      /* note: this is a hack for ios iframe for bootstrap themes shopify page */
+      /* this chunk of css is not part of the toolkit :) */
+      body {
+        width: 1px;
+        min-width: 100%;
+        *width: 100%;
+      }
+    </style>
+    <!-- jquery-->
+    <script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+
+    <script src="echarts.min.js"></script>
+  </head>
+
+
+<body>
+  
+
+
+
+<div class="bqh">
+
+  <nav class="ch">
+    <a class="bqi" href="../index.html">
+      <span class="bv bhc bqj"></span>
+    </a>
+    <div class="bqm">
+      <ul class="nav pb bqk zh">
+        <li class="pa">
+          <a class="oy" href="../index.html" title="BTC Miners" data-toggle="tooltip" data-placement="right" data-container="body">
+            <span class="bv bgf"></span>
+            <small class="bql vi">BTC Miners</small>
+          </a>
+        </li>
+        <li class="pa">
+          <a class="oy" href="https://t.me/joinchat/I2FKWxE3puJ4nVrc4ut_cA" title="" data-toggle="tooltip" data-placement="right" data-container="body" data-original-title="Telegram">
+            <img src="img/logotype-telegram-round-blue-logo-512.png" alt="" class="uo">
+            <small class="bql vi">Telegram</small>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="bw">
+    <div class="bqn">
+      <div class="bqo">
+        <h6 class="bqq">Dashboards</h6>
+        <h3 class="bqp">BTC Miners</h3>
+      </div>
+
+      <!--
+      <div class="bqr">
+        <div class="bpy bqt">
+          <input type="text" value="01/01/15 - 01/08/15" class="form-control" data-provide="datepicker">
+          <span class="bv bbc"></span>
+        </div>
+        <span class="bqs d-none vk"></span>
+        <div class="ol bqt bqv">
+          <button type="button" class="ce nr">Day</button>
+          <button type="button" class="ce nr active">Week</button>
+          <button type="button" class="ce nr">Month</button>
+        </div>
+      </div>
+      -->
+    </div>
+
+    <ul class="nav axr afg als aei uq" role="tablist">
+      <li class="pa" role="presentation">
+        <a href="#roi" class="oy active" role="tab" data-toggle="tab" aria-controls="sales">ROI</a>
+      </li>
+   <!--
+      <li class="pa" role="presentation">
+        <a href="#income" class="oy" role="tab" data-toggle="tab" aria-controls="traffic">Year income($)</a>
+      </li>
+   -->
+      <li class="pa" role="presentation">
+        <a href="#bestprice" class="oy" role="tab" data-toggle="tab" aria-controls="support">Bestprice</a>
+      </li>
+    </ul>
+
+    <hr class="aee afr">
+
+    <div class="pe">
+      <div role="tabpanel" class="pf" id="income">
+        <div class="bst afr">
+          <canvas
+            class="bpt"
+            width="600" height="400"
+            data-chart="line"
+            data-dataset="[[{16t}],[{14t}],[{13t}],[{t9}],[{v9}]]"
+            data-dataset-options="[{label: 'Halong 16T'}, {label: 'Ant S9 14T'}, {label: 'Ant S9 13.5T'}, {label:'Ant T9 10.5T'}, {label:'Ant v9 4T'}]"
+            data-labels="[{datetime}]"
+            data-dark="true">
+          </canvas>
+        </div>
+      </div>
+
+      <div role="tabpanel" class="pf active" id="roi">
+        <div class="bst afr">
+          <div id="roi_container" style="height: 300px"></div>
+        </div>
+      </div>
+
+      <div role="tabpanel" class="pf" id="bestprice">
+        <div class="bst afr">
+          <canvas
+            class="bpt"
+            width="600" height="400"
+            data-chart="bar"
+            data-dark="true"
+            data-labels="{device_list}"
+            data-dataset="[[{marketprice}], [{bestprice}]]"
+            data-dataset-options="[{label: 'Market price($)'}, {label: 'Best price($)'}]">
+          </canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="bpu afh">
+      <h3 class="bpv bpw">1 Hour stats</h3>
+    </div>
+
+    <div class="dh brg aez afd axh avz">
+      <div class="dp en brh afk">
+        {market_price}
+      </div>
+      <div class="dp en brh afk">
+        {network_hash}
+      </div>
+      <div class="dp en brh afk">
+        <h3 class="bph aws">
+          {diffi}
+        </h3>
+        <span class="bpi">Difficulty</span>
+      </div>
+    </div>
+
+    <hr class="afh">
+
+    <div class="dh">
+      <div class="fc afr">
+        <div class="by afd">
+          {day_income}
+          
+        </div>
+        <a href="#" class="ce nr ags">View all pages</a>
+      </div>
+      <div class="fc afr">
+        <div class="by afd">
+          
+          {month_income}
+          
+        </div>
+        <a href="#" class="ce nr ags">View all pages</a>
+      </div>
+      <div class="fc afr">
+        <div class="by afd">
+          {year_income}
+        </div>
+        <a href="#" class="ce nr ags">View all pages</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+    <script src="popper.min.js"></script>
+    <script src="chart.js"></script>
+    <script src="tablesorter.min.js"></script>
+    <script src="toolkit.js"></script>
+    <script src="application.js"></script>
+    <script>
+      // execute/clear BS loaders for docs
+      $(function(){while(window.BS&&window.BS.loader&&window.BS.loader.length){(window.BS.loader.pop())()}})
+    </script>
+
+    <script type="text/javascript">
+        var roi_dom = document.getElementById("roi_container");
+        var roiChart = echarts.init(roi_dom,'dark');
+        var roi_app = {};
+        option = null;
+        roi_app.title = 'ROI - Bar';
+        
+        option = {
+            title: {
+                text: 'ROI',
+                subtext: 'Data from Internet only for reference'
+            },
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'shadow'
+                }
+            },
+            legend: {
+                data: ['ROI(day)']
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'value',
+                boundaryGap: [0, 0.01]
+            },
+            yAxis: {
+                type: 'category',
+                data: [{roi_y}]
+            },
+            series: [
+                {
+                    name: 'ROI(day)',
+                    type: 'bar',
+                    data: [{roi}]
+                },
+        
+            ]
+        };
+        ;
+        if (option && typeof option === "object") {
+            roiChart.setOption(option, true);
+        }
+
+    </script>
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-48212260-2"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+    
+      gtag('config', 'UA-48212260-2');
+    </script>
+
+    <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?bf22f06e8fb3c10f3297df618e1bc92e";
+      var s = document.getElementsByTagName("script")[0]; 
+      s.parentNode.insertBefore(hm, s);
+    })();
+    </script>
+  </body>
+</html>
+
+
+
