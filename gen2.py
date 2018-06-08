@@ -66,14 +66,21 @@ for row in stats_cursor:
 ##### Get ROI and price.
 miner_cursor =c.execute("select * from minerprice order by ID desc limit 50")
 
-device_list = ["halong",'s9_14',"s9_13","t9","v9"]
+##### Initial #####
+device_list = []
+device_name_list = []
 device_name = {}
-device_name["halong"] = "Halong T1 16T"
-device_name["v9"] = "AntMiner v9 4T"
-device_name["t9"] = "AntMiner T9 10.5T"
-device_name["s9_13"] = "AntMiner S9 13.5T"
-device_name["s9_14"] = "AntMiner S9 14T"
-print "device_list is ", device_list
+txt= open("device_list.txt", "r").readlines()
+for line in txt:
+    miners = line.split(",")
+    device_name[miners[0].strip()] = miners[1].strip()
+    device_list.append( miners[0].strip())
+    device_name_list.append( miners[1].strip())
+
+
+#print "device_list is ", device_list
+#print "device_name is ", device_name
+
 datetime = ""
 roi = {}
 
@@ -178,18 +185,19 @@ difficulty =  requests.get("https://blockchain.info/q/getdifficulty").content
 ### Wirte html
 f_path = r'/var/www/html/temp2.html'
 f = open (f_path, "r+")
-html = re.sub(r'{t9}', year_income_usd["t9"], f.read())
-html = re.sub(r'{v9}', year_income_usd["v9"], html)
-html = re.sub(r'{13t}', year_income_usd["s9_13"], html)
-html = re.sub(r'{14t}', year_income_usd["s9_14"], html)
-html = re.sub(r'{16t}', year_income_usd["halong"], html)
+#html = re.sub(r'{t9}', year_income_usd["t9"], f.read())
+#html = re.sub(r'{v9}', year_income_usd["v9"], html)
+#html = re.sub(r'{13t}', year_income_usd["s9_13"], html)
+#html = re.sub(r'{14t}', year_income_usd["s9_14"], html)
+#html = re.sub(r'{16t}', year_income_usd["halong"], html)
 
-html = re.sub(r'{datetime}', datetime, html)
+html = re.sub(r'{datetime}', datetime, f.read())
 
 html = re.sub(r'{market_price}', price_stats, html)
 html = re.sub(r'{network_hash}', NH_stats, html)
 
 html = re.sub(r'{bestprice}', bar_bestprice, html)
+html = re.sub(r'{device_list}', str(device_name_list), html)
 html = re.sub(r'{marketprice}', cprice_list, html)
 html = re.sub(r'{diffi}', difficulty, html)
 
