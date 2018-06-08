@@ -1,5 +1,5 @@
-gmo_b2,GMO miner B2,24,1950,gmo,b2
-ebit_e10,Ebang Ebit E10,18,1650,Ebang,e10
-in_t2,Innosilicon T2,17.2,1570,Innosilicon,t2
-halong,Halong T1 16T,16,1480,Halong,t1
-s9_14,AntMiner s9 14T,14,1372,bitmain,s9
+gmo_b2,GMO miner B2,24,1950,gmo,b2,https://gmominer.z.com/en/
+ebit_e10,Ebang Ebit E10,18,1650,Ebang,e10,http://miner.ebang.com.cn/
+in_t2,Innosilicon T2,17.2,1570,Innosilicon,t2,http://www.innosilicon.com/
+halong,Halong T1 16T,16,1480,Halong,t1,https://halongmining.com/shop/
+s9_14,AntMiner s9 14T,14,1372,bitmain,s9,https://shop.bitmain.com/
