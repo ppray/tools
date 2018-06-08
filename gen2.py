@@ -34,7 +34,7 @@ def profit_string(usd,profit):
     return str(round(profit,6))+" BTC ($"+str(round(profit*float(usd),2))+")"
 
 ## Generate profit table
-def html_table(usd,table_name,device_list,device_name,profit_list):
+def html_table(usd,table_name,device_list,device_name,profit_list,link):
     html = '''
           <h6 class="aya">
             %s
@@ -42,10 +42,10 @@ def html_table(usd,table_name,device_list,device_name,profit_list):
     a = {} 
     for miner in device_list:
         a[miner] = '''
-               <a class="pu rs xj ux" href="#">
+               <a class="pu rs xj ux" href="%s">
                  <span>%s</span>
                  <span class="awy">%s</span>
-               </a> ''' % (device_name[miner],profit_string(usd,profit_list[miner]))
+               </a> ''' % (link[miner],device_name[miner],profit_string(usd,profit_list[miner]))
         html = html+a[miner]
 
     #print html
@@ -70,10 +70,12 @@ miner_cursor =c.execute("select * from minerprice order by ID desc limit 50")
 device_list = []
 device_name_list = []
 device_name = {}
+link = {}
 txt= open("device_list.txt", "r").readlines()
 for line in txt:
     miners = line.split(",")
     device_name[miners[0].strip()] = miners[1].strip()
+    link[miners[0].strip()] = miners[6].strip()
     device_list.append( miners[0].strip())
     device_name_list.append( miners[1].strip())
 
@@ -155,9 +157,9 @@ print "cprice_list is ", cprice_list
 
 ### Creat table
 
-day_income_table = html_table(btc_price_usdt,"Profit /day",device_list,device_name,day_income)
-month_income_table = html_table(btc_price_usdt,"Profit /month",device_list,device_name,month_income)
-year_income_table = html_table(btc_price_usdt,"Profit /year",device_list,device_name,year_income)
+day_income_table = html_table(btc_price_usdt,"Profit /day",device_list,device_name,day_income,link)
+month_income_table = html_table(btc_price_usdt,"Profit /month",device_list,device_name,month_income,link)
+year_income_table = html_table(btc_price_usdt,"Profit /year",device_list,device_name,year_income,link)
 
 tag = 0
 if btcprice[0] > btcprice[1]:
