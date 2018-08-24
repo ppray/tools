@@ -1,5 +1,5 @@
 whatsminer-m10,WM M10 33T,33,2150,Whatsminer,M10,https://pangolinminer.com/product/whatsminer-m10/
 gmo_b2,GMO B2 24T,24,1950,gmo,b2,https://gmominer.z.com/en/
-ebit_e10,Ebit E10 18T,18,1650,Ebang,e10,http://miner.ebang.com.cn/
 in_t2,Innosilicon T2 17T,17.2,1570,Innosilicon,t2,http://www.innosilicon.com/html/t2-miner/
-s9_14,AntMiner s9 14.5T,14.5,1350,bitmain,s9,https://shop.bitmain.com/
+ebit_e10,Ebit E10 18T,18,1650,Ebang,e10,http://miner.ebang.com.cn/
+s9_hy,AntMiner s9 18T,18,1728,bitmain,Hydro,https://shop.bitmain.com/
