@@ -42,7 +42,7 @@ def html_table(usd,table_name,device_list,device_name,profit_list,link):
     a = {} 
     for miner in device_list:
         a[miner] = '''
-               <a class="pu rs xj ux" href="%s">
+               <a class="pu rs xj ux" href="%s" target="_blank">
                  <span>%s</span>
                  <span class="awy">%s</span>
                </a> ''' % (link[miner],device_name[miner],profit_string(usd,profit_list[miner]))
